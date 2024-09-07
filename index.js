@@ -22,5 +22,30 @@ async function environmentSetup() {
     
     //Set the maximum payment for queries (in Hbar)
     client.setDefaultMaxQueryPayment(new Hbar(50));
+
+    // Generate a new key pair
+    // Generate a new key pair
+    PrivateKey newAccountPrivateKey = PrivateKey.generateED25519();
+    PublicKey newAccountPublicKey = newAccountPrivateKey.getPublicKey();
+
+    //Create a new account with 1,000 tinybar starting balance
+    const newAccount = await new AccountCreateTransaction()
+        .setKey(newAccountPublicKey)
+        .setInitialBalance(Hbar.fromTinybars(1000))
+        .execute(client);
+
+    // Get the new account ID
+    const getReceipt = await newAccount.getReceipt(client);
+    const newAccountId = getReceipt.accountId;
+
+    //Log the account ID
+    console.log("The new account ID is: " +newAccountId);
+
+    //Verify the account balance
+    const accountBalance = await new AccountBalanceQuery()
+    .setAccountId(newAccountId)
+    .execute(client);
+
+    console.log("The new account balance is: " +accountBalance.hbars.toTinybars() +" tinybar.");
 }
 environmentSetup();
