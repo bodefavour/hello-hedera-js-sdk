@@ -26,7 +26,7 @@ async function environmentSetup() {
     // Generate a new key pair
     // Generate a new key pair
     const newAccountPrivateKey = PrivateKey.generateED25519();
-    const newAccountPublicKey = newAccountPrivateKey.getPublicKey();
+    const newAccountPublicKey = newAccountPrivateKey.publicKey();
 
     //Create a new account with 1,000 tinybar starting balance
     const newAccount = await new AccountCreateTransaction()
