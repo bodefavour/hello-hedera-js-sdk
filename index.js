@@ -26,7 +26,7 @@ async function environmentSetup() {
     // Generate a new key pair
     // Generate a new key pair
     const newAccountPrivateKey = PrivateKey.generateED25519();
-    const newAccountPublicKey = newAccountPrivateKey.publicKey();
+    const newAccountPublicKey = newAccountPrivateKey.publicKey;
 
     //Create a new account with 1,000 tinybar starting balance
     const newAccount = await new AccountCreateTransaction()
@@ -47,5 +47,15 @@ async function environmentSetup() {
     .execute(client);
 
     console.log("The new account balance is: " +accountBalance.hbars.toTinybars() +" tinybar.");
+
+    //Create the transfer transaction
+    const sendHbar = await new TransferTransaction()
+        .addHbarTransfer(myAccountId, Hbar.fromTinybars(-1000)) //Sending account
+        .addHbarTransfer(newAccountId, evmAddress, Hbar.fromTinybars(1000)) //Receiving account
+        .execute(client);
+
+    //Verify the transaction reached consensus
+    const transactionReceipt = await sendHbar.getReceipt(client);
+    console.log("The transfer transaction from my account to the new account was: " + transactionReceipt.status.toString());
 }
 environmentSetup();
