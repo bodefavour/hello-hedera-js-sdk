@@ -1,4 +1,4 @@
-const { Client, PrivateKey, AccountCreateTransaction, AccountBalanceQuery, Hbar, TransferTransaction, TokenCreateTransaction, TokenSupplyType, TokenType, TokenAssociateTransaction, TokenId, TransferTransaction, } = require("@hashgraph/sdk");
+const { Client, PrivateKey, AccountCreateTransaction, AccountBalanceQuery, Hbar, TransferTransaction, TokenCreateTransaction, TokenSupplyType, TokenType, TokenAssociateTransaction, TokenId} = require("@hashgraph/sdk");
 require('dotenv').config();
 
 async function environmentSetup() {
