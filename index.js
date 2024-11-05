@@ -72,7 +72,7 @@ async function environmentSetup() {
 
     const transaction = await new TokenAssociateTransaction()
     .setAccountId(newAccountId)
-    .setTokenIds([TokenId])
+    .setTokenIds([tokenId])
     .freezeWith(Client);
 
     const signTx = await transaction.sign(newAccountPrivateKey)
