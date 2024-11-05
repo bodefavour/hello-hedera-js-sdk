@@ -1,4 +1,4 @@
-const { Client, PrivateKey, AccountCreateTransaction, AccountBalanceQuery, Hbar, TransferTransaction } = require("@hashgraph/sdk");
+const { Client, PrivateKey, AccountCreateTransaction, AccountBalanceQuery, Hbar, TransferTransaction, TokenCreateTransaction, TokenSupplyType, TokenType, TokenAssociateTransaction, TokenId, TransferTransaction, } = require("@hashgraph/sdk");
 require('dotenv').config();
 
 async function environmentSetup() {
@@ -41,21 +41,63 @@ async function environmentSetup() {
     //Log the account ID
     console.log("The new account ID is: " +newAccountId);
 
-    //Verify the account balance
-    const accountBalance = await new AccountBalanceQuery()
+    const supplyKey = PrivateKey.generate();
+
+    // CREATE FUNGIBLE TOKEN
+    let tokenCreateTx = await new TokenCreateTransaction()
+        .setTokenName("Feramy Token")
+        .setTokenSymbol("FTB")
+        .setTokenType(TokenType.FungibleCommon)
+        .setDecimals(2)
+        .setInitialSupply(10000)
+        .setTreasuryAccountId(myAccountId)
+        .setSupplyType(TokenSupplyType.Infinite)
+        .setSupplyKey(supplyKey)
+        .freezeWith(client);
+
+    //SIGN WITH TREASURY KEY
+    let tokenCreateSign = await tokenCreateTx.sign(PrivateKey.fromString(myPrivateKey));
+
+    //SUBMIT THE TRANSACTION
+    let tokenCreateSubmit = await tokenCreateSign.execute(client);
+
+    //GET THE TRANSACTION RECEIPT
+    let tokenCreateRx = await tokenCreateSubmit.getReceipt(client);
+
+    //GET THE TOKEN ID
+    let tokenId = tokenCreateRx.tokenId;
+
+    //LOG THE TOKEN ID TO THE CONSOLE
+    console.log(`- Created token with ID: ${tokenId} \n`);
+
+    const transaction = await new TokenAssociateTransaction()
     .setAccountId(newAccountId)
-    .execute(client);
+    .setTokenIds([TokenId])
+    .freezeWith(Client);
 
-    console.log("The new account balance is: " +accountBalance.hbars.toTinybars() +" tinybar.");
+    const signTx = await transaction.sign(newAccountPrivateKey)
 
-    //Create the transfer transaction
-    const sendHbar = await new TransferTransaction()
-        .addHbarTransfer(myAccountId, Hbar.fromTinybars(-1000)) //Sending account
-        .addHbarTransfer(newAccountId, evmAddress, Hbar.fromTinybars(1000)) //Receiving account
-        .execute(client);
+    const txResponse = await signTx.execute(client)
 
-    //Verify the transaction reached consensus
-    const transactionReceipt = await sendHbar.getReceipt(client);
-    console.log("The transfer transaction from my account to the new account was: " + transactionReceipt.status.toString());
+    const associationReceipt = await txResponse.getReceipt(client)
+
+    const transactionStatus = associationReceipt.status
+
+    console.log("Transaction of association was: " + transactionStatus)
+
+    const TransferTransaction = await new TransferTransaction()
+        .addTokenTRansfer(tokenId, myAccountId, -10)
+        .addTokenTRansfer(tokenId, newAccountId, -10)
+        .freezeWith(client)
+
+    const signTransferTx = await TransferTransaction.sign(PrivateKey.fromString(myPrivateKey))
+
+    const trasnferTxResponse = await signTransferTx.execute(client)
+
+    const transferReceipt = await trasnferTxResponse.getReceipt(client)
+
+    const transferStatus = transferReceipt.status
+
+    console.log("The status of the token transfer is: " + transactionStatus)
 }
 environmentSetup();
