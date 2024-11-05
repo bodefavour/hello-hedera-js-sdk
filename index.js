@@ -85,19 +85,31 @@ async function environmentSetup() {
 
     console.log("Transaction of association was: " + transactionStatus)
 
-    const TransferTransaction = await new TransferTransaction()
-        .addTokenTRansfer(tokenId, myAccountId, -10)
-        .addTokenTRansfer(tokenId, newAccountId, -10)
+    //BALANCE CHECK
+    var balanceCheckTx = await new AccountBalanceQuery().setAccountId(myAccountId).execute(client);
+    console.log(`- Treasury balance: ${balanceCheckTx.tokens._map.get(tokenId.toString())} units of token ID ${tokenId}`);
+    var balanceCheckTx = await new AccountBalanceQuery().setAccountId(newAccountId).execute(client);
+    console.log(`- Alice's balance: ${balanceCheckTx.tokens._map.get(tokenId.toString())} units of token ID ${tokenId}`);
+
+    const transferTransaction = await new TransferTransaction()
+        .addTokenTransfer(tokenId, myAccountId, -10)
+        .addTokenTransfer(tokenId, newAccountId, 10)
         .freezeWith(client)
 
-    const signTransferTx = await TransferTransaction.sign(PrivateKey.fromString(myPrivateKey))
+    const signTransferTx = await transferTransaction.sign(PrivateKey.fromString(myPrivateKey))
 
-    const trasnferTxResponse = await signTransferTx.execute(client)
+    const transferTxResponse = await signTransferTx.execute(client)
 
-    const transferReceipt = await trasnferTxResponse.getReceipt(client)
+    const transferReceipt = await transferTxResponse.getReceipt(client)
 
     const transferStatus = transferReceipt.status
 
     console.log("The status of the token transfer is: " + transactionStatus)
+
+    //BALANCE CHECK
+    var balanceCheckTx = await new AccountBalanceQuery().setAccountId(myAccountId).execute(client);
+    console.log(`- Treasury balance: ${balanceCheckTx.tokens._map.get(tokenId.toString())} units of token ID ${tokenId}`);
+    var balanceCheckTx = await new AccountBalanceQuery().setAccountId(newAccountId).execute(client);
+    console.log(`- Alice's balance: ${balanceCheckTx.tokens._map.get(tokenId.toString())} units of token ID ${tokenId}`);
 }
 environmentSetup();
